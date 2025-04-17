@@ -1,0 +1,21 @@
+{
+  "name": "notes-api-autotest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "echo \"Not implemented\" && exit 1",
+    "start:prod": "ts-node ./src/index.ts",
+    "test:notes-api": "jest --config ./jest-e2e.json"
+  },
+  "devDependencies": {
+    "@types/jest": "29.5.14",
+    "@types/supertest": "6.0.3",
+    "jest": "29.7.0",
+    "supertest": "7.1.0",
+    "ts-jest": "29.3.2",
+    "ts-node": "10.9.2"
+  },
+  "private": true
+}
