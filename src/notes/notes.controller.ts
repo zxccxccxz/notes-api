@@ -21,34 +21,34 @@ export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 
   @Get()
-  async findAll(): Promise<NoteListDto> {
+  findAll(): NoteListDto {
     return this.notesService.findAll();
   }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() createNoteDto: CreateNoteDto): Promise<NoteDto> {
+  create(@Body() createNoteDto: CreateNoteDto): NoteDto {
     return this.notesService.create(createNoteDto);
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<NoteDto> {
+  findOne(@Param('id', ParseUUIDPipe) id: string): NoteDto {
     return this.notesService.findOne(id);
   }
 
   @Put(':id')
-  async update(
+  update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateNoteDto: UpdateNoteDto,
-  ): Promise<NoteDto> {
+  ): NoteDto {
     return this.notesService.update(id, updateNoteDto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<{
+  remove(@Param('id', ParseUUIDPipe) id: string): {
     success: boolean;
-  }> {
+  } {
     return this.notesService.remove(id);
   }
 }

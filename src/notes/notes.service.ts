@@ -1,87 +1,73 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
 import { CreateNoteDto } from './dto/create-note.dto';
-import { UpdateNoteDto } from './dto/update-note.dto';
-import { Note } from './entities/note.entity';
 import { NoteDto } from './dto/note.dto';
 import { NoteListDto } from './dto/note-list.dto';
+import { UpdateNoteDto } from './dto/update-note.dto';
 
 @Injectable()
 export class NotesService {
-  constructor(
-    @InjectRepository(Note)
-    private notesRepository: Repository<Note>,
-  ) {}
+  private readonly notes: NoteDto[] = [];
 
-  private mapEntityToDto(note: Note): NoteDto {
-    return {
-      id: note.id,
-      title: note.title,
-      content: note.content,
+  create(createNoteDto: CreateNoteDto): NoteDto {
+    const newNote: NoteDto = {
+      id: uuidv4(),
+      title: createNoteDto.title,
+      content: createNoteDto.content || '',
     };
+    this.notes.push(newNote);
+    console.log(`Note created: ${JSON.stringify(newNote)}`);
+    console.log(`Current notes: ${JSON.stringify(this.notes)}`);
+    return newNote;
   }
 
-  async create(createNoteDto: CreateNoteDto): Promise<NoteDto> {
-    const newNoteEntity = this.notesRepository.create({
-      ...createNoteDto,
-      content: createNoteDto.content ?? '',
-    });
-    const savedNote = await this.notesRepository.save(newNoteEntity);
-    console.log(`Note created in DB: ${JSON.stringify(savedNote)}`);
-    return this.mapEntityToDto(savedNote);
+  findAll(): NoteListDto {
+    console.log(`Finding all notes. Count: ${this.notes.length}`);
+    return { items: this.notes };
   }
 
-  async findAll(): Promise<NoteListDto> {
-    const notes = await this.notesRepository.find();
-    console.log(`Finding all notes from DB. Count: ${notes.length}`);
-    return { items: notes.map((note) => this.mapEntityToDto(note)) };
-  }
-
-  async findOne(id: string): Promise<NoteDto> {
-    console.log(`Finding note with id: ${id} from DB`);
-
-    const note = await this.notesRepository.findOneBy({ id });
+  findOne(id: string): NoteDto {
+    console.log(`Finding note with id: ${id}`);
+    const note = this.notes.find((n) => n.id === id);
     if (!note) {
-      console.error(`Note with id ${id} not found in DB.`);
-      throw new NotFoundException(`Нотатку з ID "${id}" не знайдено`);
+      console.error(`Note with id ${id} not found.`);
+      throw new NotFoundException(`Note with id "${id}"  not found.`);
     }
-    console.log(`Note found in DB: ${JSON.stringify(note)}`);
-    return this.mapEntityToDto(note);
+    console.log(`Note found: ${JSON.stringify(note)}`);
+    return note;
   }
 
-  async update(id: string, updateNoteDto: UpdateNoteDto): Promise<NoteDto> {
+  update(id: string, updateNoteDto: UpdateNoteDto): NoteDto {
     console.log(
-      `Updating note with id: ${id} in DB, data: ${JSON.stringify(updateNoteDto)}`,
+      `Updating note with id: ${id}, data: ${JSON.stringify(updateNoteDto)}`,
     );
+    const note = this.findOne(id);
+    const noteIndex = this.notes.findIndex((n) => n.id === id);
 
-    const note = await this.notesRepository.preload({
-      id: id,
-      ...updateNoteDto,
-    });
-
-    if (!note) {
-      console.error(`Note with id ${id} not found for update in DB.`);
-      throw new NotFoundException(
-        `Note with id ${id} not found for update in DB for update.`,
-      );
+    const updatedNote = { ...note };
+    if (updateNoteDto.title !== undefined) {
+      updatedNote.title = updateNoteDto.title;
     }
-    const updatedNote = await this.notesRepository.save(note);
-    console.log(`Note updated in DB: ${JSON.stringify(updatedNote)}`);
-    return this.mapEntityToDto(updatedNote);
+    if (updateNoteDto.content !== undefined) {
+      updatedNote.content = updateNoteDto.content;
+    }
+
+    this.notes[noteIndex] = updatedNote;
+    console.log(`Note updated: ${JSON.stringify(updatedNote)}`);
+    return updatedNote;
   }
 
-  async remove(id: string): Promise<{ success: boolean }> {
-    console.log(`Removing note with id: ${id} from DB`);
-    const result = await this.notesRepository.delete(id);
-
-    if (result.affected === 0) {
-      console.error(`Note with id ${id} not found for removal in DB.`);
+  remove(id: string): { success: boolean } {
+    console.log(`Removing note with id: ${id}`);
+    const noteIndex = this.notes.findIndex((n) => n.id === id);
+    if (noteIndex === -1) {
+      console.error(`Note with id ${id} not found for removal.`);
       throw new NotFoundException(
-        `Note with id ${id} not found for removal in DB.`,
+        `Note with id  "${id}" not found for removal`,
       );
     }
-    console.log(`Note removed from DB. Affected rows: ${result.affected}`);
+    this.notes.splice(noteIndex, 1);
+    console.log(`Note removed. Current notes count: ${this.notes.length}`);
     return { success: true };
   }
 }
