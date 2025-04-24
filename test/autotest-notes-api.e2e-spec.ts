@@ -9,6 +9,7 @@ describe('External Notes API (e2e)', () => {
   let createdNoteId: string;
   let secondNoteId: string;
 
+  // Use UUID instead of `nonexistent-id` so that we get 404 instead of 400 in tests
   const NONEXISTENT_ID = '83163536-8e72-4add-b8c6-5274497c96c3';
 
   it('POST /notes - create note', async () => {
