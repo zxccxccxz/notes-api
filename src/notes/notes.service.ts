@@ -41,6 +41,7 @@ export class NotesService {
     console.log(
       `Updating note with id: ${id}, data: ${JSON.stringify(updateNoteDto)}`,
     );
+
     const note = this.findOne(id);
     const noteIndex = this.notes.findIndex((n) => n.id === id);
 

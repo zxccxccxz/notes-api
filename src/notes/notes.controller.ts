@@ -38,7 +38,8 @@ export class NotesController {
 
   @Put(':id')
   update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseUUIDPipe)
+    id: string,
     @Body() updateNoteDto: UpdateNoteDto,
   ): NoteDto {
     return this.notesService.update(id, updateNoteDto);
